@@ -10,9 +10,7 @@ class Display:
         self.cols = 64
         self.rows = 32
         self.scale = scale
-
         self.grid = np.zeros((self.rows, self.cols), dtype=np.uint8)
-        
         self.on = rl.get_color(0xFFFFFFFF)
         self.off = rl.get_color(0x000000FF)
 
@@ -49,5 +47,5 @@ class Display:
                     
         rl.end_drawing()
 
-    def close(self):
+    def deinit(self):
         rl.close_window()
