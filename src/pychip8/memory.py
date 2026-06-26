@@ -1,6 +1,7 @@
 import numpy as np
 
 # pychip8 memory
+# by las-r
 
 # font
 FONTSET = np.array([
