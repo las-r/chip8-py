@@ -7,6 +7,8 @@ A modular, extensible CHIP-8 emulator ecosystem written in modern Python.
 Requires Python 3.11+.
 
 ```sh
+pip install chip8-py
+# or in a local directory
 git clone https://github.com/las-r/pychip8
 cd pychip8
 pip install -e .
