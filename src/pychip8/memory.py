@@ -27,7 +27,7 @@ FONTSET = np.array([
 class Memory:
     def __init__(self, size: int = 4096):
         self.mem = np.zeros(size, dtype=np.uint8)
-        self.mem[0x50:0x9F] = FONTSET
+        self.mem[0x50:0xa0] = FONTSET
         
     def __setitem__(self, loc: int | np.uint16, val: int | np.uint8):
         self.mem[loc] = val

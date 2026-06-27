@@ -1,5 +1,5 @@
-from .display import Display
-from .memory import Memory
+from display import Display
+from memory import Memory
 import numpy as np
 
 # pychip8 cpu
@@ -16,18 +16,22 @@ class Processor:
         self.pc = np.uint16(0x200)
         self.i = np.uint16(0)
         
-    def fetch(self):
-        inst = (self.ram[self.pc] << 8) | self.ram[self.pc + 1]
+    def fetch(self) -> np.uint16:
+        if self.pc >= 4095:
+            print(f"CRASH: PC reached {self.pc}. Last V registers: {self.v}")
+        high = self.ram[self.pc]
+        low = self.ram[self.pc + 1]
+        opc = (np.uint16(high) << 8) | np.uint16(low)
         self.pc += 2
-        return inst
+        return opc
     
     def execute(self, inst):
         l = inst >> 12
         x = (inst >> 8) & 0xf
         y = (inst >> 4) & 0xf
         n = inst & 0xf
-        nn = (inst >> 16) & 0xff
-        nnn = (inst >> 4) & 0xfff
+        nn = 0xff
+        nnn = 0xfff
         
         match (l, x, y, n):
             # clear screen
@@ -61,8 +65,11 @@ class Processor:
                     ty = (sy + ri) % 32
                     for ci in range(8):
                         tx = (sx + ci) % 64
-                        pixel = sbits[ci, ci]
+                        pixel = sbits[ri, ci]
                         if pixel:
                             if self.disp.grid[ty, tx] == 1:
                                 self.v[0xF] = 1
                             self.disp.grid[ty, tx] ^= 1
+                            
+    def cycle(self):
+        self.execute(self.fetch())
