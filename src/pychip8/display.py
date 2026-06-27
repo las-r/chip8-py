@@ -20,16 +20,6 @@ class Display:
     def clear(self):
         self.grid.fill(0)
 
-    def write_pixel(self, x: int, y: int) -> bool:
-        x = x % self.cols
-        y = y % self.rows
-        
-        cur = self.grid[y, x]
-        new = cur ^ 1
-        self.grid[y, x] = new
-        
-        return cur == 1 and new == 0
-
     def render(self):
         rl.begin_drawing()
         rl.clear_background(self.off)

@@ -29,10 +29,10 @@ class Memory:
         self.mem = np.zeros(size, dtype=np.uint8)
         self.mem[0x50:0x9F] = FONTSET
         
-    def __setitem__(self, loc: int, val: int | np.uint8):
+    def __setitem__(self, loc: int | np.uint16, val: int | np.uint8):
         self.mem[loc] = val
 
-    def __getitem__(self, loc: int) -> np.uint8:
+    def __getitem__(self, loc: int | np.uint16) -> np.uint8:
         return self.mem[loc]
         
     def load_rom(self, romb: bytes, start: int = 0x200):
