@@ -35,9 +35,9 @@ Flags override the config file.
 
 ### File
 On first run, a default config is created at:
-- **Windows:** `%APPDATA%\pychip8\config.toml`
-- **macOS:** `~/Library/Application Support/pychip8/config.toml`
-- **Linux:** `~/.config/pychip8/config.toml`
+- **Windows:** `C:/Users/YOUR_USER_PROFILE/AppData/Local/pychip8/`
+- **macOS:** `~/Library/Application Support/pychip8/`
+- **Linux:** `~/.config/pychip8/`
 
 Edit this file to set your preferred defaults.
 
