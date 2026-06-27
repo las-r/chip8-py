@@ -34,6 +34,8 @@ def main():
     parser.add_argument("--cosmac-font", action=argparse.BooleanOptionalAction)
     parser.add_argument("--cosmac-ls", action=argparse.BooleanOptionalAction)
     parser.add_argument("--vf-reset", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--fg", type=lambda x: int(x, 16), help="foreground color (hex, e.g. FFFFFFFF)")
+    parser.add_argument("--bg", type=lambda x: int(x, 16), help="background color (hex, e.g. 000000FF)")
     args = parser.parse_args()
 
     # config helpers
@@ -49,7 +51,11 @@ def main():
         rom = f.read()
 
     # init
-    display = Display(scale=gdisp("scale", args.scale))
+    display = Display(
+        scale=gdisp("scale", args.scale),
+        fg=gdisp("fg", args.fg),
+        bg=gdisp("bg", args.bg),
+    )
     keypad = Keypad()
     timers = Timers(vol=gaud("volume", args.volume))
     memory = Memory()

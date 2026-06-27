@@ -6,13 +6,13 @@ import pyray as rl
 
 # display class
 class Display:
-    def __init__(self, scale: int = 12, title: str = "pychip8"):
+    def __init__(self, scale: int = 12, title: str = "pychip8", fg: int = 0xFFFFFFFF, bg: int = 0x000000FF):
         self.cols = 64
         self.rows = 32
         self.scale = scale
         self.grid = np.zeros((self.rows, self.cols), dtype=np.uint8)
-        self.on = rl.get_color(0xFFFFFFFF)
-        self.off = rl.get_color(0x000000FF)
+        self.on = rl.get_color(fg)
+        self.off = rl.get_color(bg)
 
         rl.init_window(self.cols * self.scale, self.rows * self.scale, title)
         rl.set_target_fps(60)
