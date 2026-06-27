@@ -1,10 +1,57 @@
-# CHIP-8 for Python
+# pychip8
 A modular, extensible CHIP-8 emulator ecosystem written in modern Python.
 
 > **Note:** This is a remake of an old project of mine, [chip-8-python](https://github.com/las-r/chip-8-python), which aimed to do the same thing but was honestly pretty poorly made. It was monolithic and clunky, and this one is built to be an actual Python package.
 
 ## Installation
-WIP
+Requires Python 3.11+.
+
+```sh
+git clone https://github.com/las-r/pychip8
+cd pychip8
+pip install -e .
+```
 
 ## Usage
-WIP
+```sh
+pychip8 path/to/rom.ch8
+```
+
+## Config
+### Flags
+Flags override the config file.
+
+| Flag | Description |
+|---|---|
+| `--cpf <int>` | Cycles per frame (default: 10) |
+| `--scale <int>` | Display scale (default: 12) |
+| `--volume <float>` | Audio volume 0.0–1.0 (default: 0.2) |
+| `--cosmac-shift / --no-cosmac-shift` | COSMAC VIP shift quirk |
+| `--cosmac-jump / --no-cosmac-jump` | COSMAC VIP jump quirk |
+| `--cosmac-i-add / --no-cosmac-i-add` | COSMAC VIP index add quirk |
+| `--cosmac-font / --no-cosmac-font` | COSMAC VIP font quirk |
+| `--cosmac-ls / --no-cosmac-ls` | COSMAC VIP load/store quirk |
+| `--vf-reset / --no-vf-reset` | Reset VF after logic instructions |
+
+### File
+On first run, a default config is created at:
+- **Windows:** `%APPDATA%\pychip8\config.toml`
+- **macOS:** `~/Library/Application Support/pychip8/config.toml`
+- **Linux:** `~/.config/pychip8/config.toml`
+
+Edit this file to set your preferred defaults.
+
+## Keypad
+The CHIP-8 hex keypad maps to the left side of a QWERTY keyboard:
+```
+CHIP-8    Keyboard
+1 2 3 C   1 2 3 4
+4 5 6 D   Q W E R
+7 8 9 E   A S D F
+A 0 B F   Z X C V
+```
+
+## Credits
+- [raylib](https://www.raylib.com/) ([Python](https://github.com/electronstudio/raylib-python-cffi/))
+- [Guide to making a CHIP-8 emulator](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
+- [Timendus' CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite)
