@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pychip8 = "pychip8.__main__:main"
+chip8py = "chip8py.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
