@@ -8,6 +8,10 @@ import random
 # pychip8 cpu
 # by las-r
 
+# exit exception
+class InterpreterExit(Exception):
+    pass
+
 # processor class
 class Processor:
     def __init__(self, ram: Memory, disp: Display, kp: Keypad, tm: Timers, cpf: int = 10):
@@ -24,12 +28,14 @@ class Processor:
         self.cosmac_font = True # def: True
         self.cosmac_ls = False # def: False
         self.vf_reset = True # def: True
+        self.spr_clip = False # def: False
         
         # data storage
         self.v = np.zeros(16, np.uint8)
         self.pc = np.uint16(0x200)
         self.i = np.uint16(0)
         self.stack = []
+        self.rplf = np.zeros(16, dtype=np.uint8)
         
         # other
         self.pkeys = np.zeros(16, dtype=np.uint8)
@@ -50,9 +56,47 @@ class Processor:
         nnn = inst & 0xfff
         
         match (l, x, y, n):
+            # scroll screen down
+            case (0, 0, 12, _):
+                if 0 < n < self.disp.grid.shape[0]:
+                    old_grid = self.disp.grid.copy()
+                    ngrid = np.zeros_like(old_grid)
+                    ngrid[n:] = old_grid[:-int(n)]
+                    self.disp.grid = ngrid
+            
             # clear screen
             case (0, 0, 14, 0):
                 self.disp.clear()
+                
+            # scroll right
+            case (0, 0, 15, 11):
+                ngrid = np.zeros_like(self.disp.grid)
+                ngrid[:, 4:] = self.disp.grid[:, :-4]
+                self.disp.grid = ngrid
+                
+            # scroll left
+            case (0, 0, 15, 12):
+                ngrid = np.zeros_like(self.disp.grid)
+                ngrid[:, :-4] = self.disp.grid[:, 4:]
+                self.disp.grid = ngrid
+                
+            # exit emulator
+            case (0, 0, 15, 13):
+                raise InterpreterExit
+
+            # disable high res mode
+            case (0, 0, 15, 14):
+                _, ow = self.disp.grid.shape
+                if ow != 64:
+                    self.disp.scale *= 2
+                self.disp.grid = np.zeros((32, 64), dtype=np.uint8)
+            
+            # enable high res mode
+            case (0, 0, 15, 15):
+                _, ow = self.disp.grid.shape
+                if ow != 128:
+                    self.disp.scale //= 2
+                self.disp.grid = np.zeros((64, 128), dtype=np.uint8)
                 
             # return from subroutine
             case (0, 0, 14, 14):
@@ -120,27 +164,29 @@ class Processor:
             
             # set vx to vx - vy
             case (8, _, _, 5):
-                self.v[x] -= self.v[y]
                 self.v[0xf] = 1 if self.v[x] >= self.v[y] else 0
+                self.v[x] -= self.v[y]
                 
             # right shift
             case (8, _, _, 6):
                 if self.cosmac_shift:
                     self.v[x] = self.v[y]
-                self.v[0xf] = self.v[x] & 0x1
+                flag = self.v[x] & 0x1
                 self.v[x] >>= 1
+                self.v[0xf] = flag
                 
             # set vx to vy - vx
             case (8, _, _, 7):
-                self.v[x] = self.v[y] - self.v[x]
                 self.v[0xf] = 1 if self.v[y] >= self.v[x] else 0
+                self.v[x] = self.v[y] - self.v[x]
             
             # left shift
             case (8, _, _, 14):
                 if self.cosmac_shift:
                     self.v[x] = self.v[y]
-                self.v[0xf] = self.v[x] >> 7
+                flag = self.v[x] >> 7
                 self.v[x] <<= 1
+                self.v[0xf] = flag
                 
             # skip if vx != vy
             case (9, _, _, 0):
@@ -161,19 +207,40 @@ class Processor:
             
             # draw
             case (13, _, _, _):
-                sx = self.v[x] & 63
-                sy = self.v[y] & 31
-                self.v[0xF] = 0
-                sbytes = self.ram.mem[self.i : self.i + n]
-                sbits = np.unpackbits(sbytes).reshape(n, 8)
-                for ri in range(n):
-                    ty = (sy + ri) % 32
-                    for ci in range(8):
-                        tx = (sx + ci) % 64
+                h, w = self.disp.grid.shape
+                is16x16 = n == 0 and w == 128
+                srows = 16 if is16x16 else n
+                scols = 16 if is16x16 else 8
+                sx = self.v[x]
+                sy = self.v[y]
+                if not self.spr_clip:
+                    sx %= w
+                    sy %= h
+                else:
+                    if sx >= w or sy >= h:
+                        self.v[0xf] = 0
+                        return
+                self.v[0xf] = 0
+                bpr = 2 if scols == 16 else 1
+                tbytes = srows * bpr
+                sbytes = self.ram.mem[self.i : self.i + tbytes]
+                sbits = np.unpackbits(sbytes).reshape(srows, bpr * 8)
+                for ri in range(srows):
+                    ty = sy + ri
+                    if self.spr_clip:
+                        if ty >= h: break
+                    else:
+                        ty %= h
+                    for ci in range(scols):
+                        tx = sx + ci
+                        if self.spr_clip:
+                            if tx >= w: continue
+                        else:
+                            tx %= w
                         pixel = sbits[ri, ci]
                         if pixel:
                             if self.disp.grid[ty, tx] == 1:
-                                self.v[0xF] = 1
+                                self.v[0xf] = 1
                             self.disp.grid[ty, tx] ^= 1
                             
             # skip if key vx pressed
@@ -192,7 +259,6 @@ class Processor:
                 
             # get key
             case (15, _, 0, 10):
-                print(f"pkeys: {self.pkeys}, keys: {self.kp.keys}")
                 released = None
                 for k in range(16):
                     if self.pkeys[k] == 1 and self.kp.keys[k] == 0:
@@ -221,7 +287,12 @@ class Processor:
             # set i to font character
             case (15, _, 2, 9):
                 ch = (self.v[x] & 0xf) if self.cosmac_font else self.v[x]
-                self.i = 0x50 + (ch * 5)
+                self.i = ch * 5
+                
+            # set i to large font character
+            case(15, _, 3, 0):
+                lch = self.v[x] & 0xf
+                self.i = 0x50 + lch * 10
                 
             # bcd
             case (15, _, 3, 3):
@@ -242,6 +313,16 @@ class Processor:
                     self.v[j] = self.ram[int(self.i) + j]
                 if self.cosmac_ls:
                     self.i += x + 1
+                    
+            # store into rpl flags
+            case (15, _, 7, 5):
+                for idx in range(x + 1):
+                    self.rplf[idx] = self.v[idx]
+
+            # load from rpl flags
+            case (15, _, 8, 5):
+                for idx in range(x + 1):
+                    self.v[idx] = self.rplf[idx]
                             
     def cycle(self):
         self.execute(self.fetch())
