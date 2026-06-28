@@ -21,14 +21,17 @@ class Processor:
         self.tm = tm
         self.cpf = cpf
         
-        # opcode options
-        self.cosmac_shift = False # def: False
-        self.cosmac_jump = False # def: False
-        self.cosmac_i_add = False # def: False
-        self.cosmac_font = True # def: True
-        self.cosmac_ls = False # def: False
-        self.vf_reset = True # def: True
-        self.spr_clip = False # def: False
+        # quirk options
+        self.cosmac_shift = False # put the value of vy into vx before shifting vx; def: False
+        self.cosmac_jump = False # jump to instruction at nn plus v0 instead of xnn plus vx; def: False
+        self.cosmac_i_add = False # fx1e does not affect vf upon going above 4096; def: False
+        self.cosmac_font = True # fx29 only takes the last nibble of vx; def: True
+        self.cosmac_ls = False # increments i as fx55/fx65 work; def: False
+        self.vf_reset = True # bitwise operation reset vf to 0; def: True
+        self.spr_clip = False # sprites dont wrap around; def: False
+        self.schip_scroll = False  # scroll down n/2 rows in lores; def: False
+        self.schip_hires_spr = True  # dxy0 draws 16x16 in hires only; def: True
+        self.schip_vblank = False  # wait for vblank before drawing; def: False
         
         # data storage
         self.v = np.zeros(16, np.uint8)
@@ -58,10 +61,12 @@ class Processor:
         match (l, x, y, n):
             # scroll screen down
             case (0, 0, 12, _):
-                if 0 < n < self.disp.grid.shape[0]:
-                    old_grid = self.disp.grid.copy()
-                    ngrid = np.zeros_like(old_grid)
-                    ngrid[n:] = old_grid[:-int(n)]
+                h, w = self.disp.grid.shape
+                scroll = n // 2 if (self.schip_scroll and w == 64) else n
+                if 0 < scroll < self.disp.grid.shape[0]:
+                    ogrid = self.disp.grid.copy()
+                    ngrid = np.zeros_like(ogrid)
+                    ngrid[scroll:] = ogrid[:scroll]
                     self.disp.grid = ngrid
             
             # clear screen
@@ -207,8 +212,11 @@ class Processor:
             
             # draw
             case (13, _, _, _):
+                if self.schip_vblank and not self.disp.vblank:
+                    self.pc -= 2
+                    return
                 h, w = self.disp.grid.shape
-                is16x16 = n == 0 and w == 128
+                is16x16 = n == 0 and (w == 128 if self.schip_hires_spr else True)
                 srows = 16 if is16x16 else n
                 scols = 16 if is16x16 else 8
                 sx = self.v[x]

@@ -6,10 +6,16 @@ cosmac_i_add = false
 cosmac_font = true
 cosmac_ls = false
 vf_reset = true
+spr_clip = false
+schip_scroll = false
+schip_hires_spr = true
+schip_vblank = false
 
 [display]
 scale = 12
 title = "pychip8"
+fg = 0xffffffff
+bg = 0x000000ff
 
 [audio]
 volume = 0.05

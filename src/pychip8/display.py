@@ -15,11 +15,13 @@ class Display:
         h, w = self.grid.shape
         rl.init_window(w * self.scale, h * self.scale, "pychip8")
         rl.set_target_fps(60)
+        self.vblank = False
 
     def clear(self):
         self.grid.fill(0)
 
     def render(self):
+        self.vblank = True
         rl.begin_drawing()
         rl.clear_background(self.off)
 
@@ -36,6 +38,7 @@ class Display:
                     )
                     
         rl.end_drawing()
+        self.vblank = False
 
     def deinit(self):
         rl.close_window()

@@ -34,6 +34,10 @@ def main():
     parser.add_argument("--cosmac-font", action=argparse.BooleanOptionalAction)
     parser.add_argument("--cosmac-ls", action=argparse.BooleanOptionalAction)
     parser.add_argument("--vf-reset", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--spr-clip", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--schip-scroll", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--schip-hires-spr", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--schip-vblank", action=argparse.BooleanOptionalAction)
     parser.add_argument("--fg", type=lambda x: int(x, 16), help="foreground color (hex, e.g. FFFFFFFF)")
     parser.add_argument("--bg", type=lambda x: int(x, 16), help="background color (hex, e.g. 000000FF)")
     args = parser.parse_args()
@@ -69,6 +73,10 @@ def main():
     cpu.cosmac_font = gcpu("cosmac_font", args.cosmac_font)
     cpu.cosmac_ls = gcpu("cosmac_ls", args.cosmac_ls)
     cpu.vf_reset = gcpu("vf_reset", args.vf_reset)
+    cpu.spr_clip = gcpu("spr_clip", args.spr_clip)
+    cpu.schip_scroll = gcpu("schip_scroll", args.schip_scroll)
+    cpu.schip_hires_spr = gcpu("schip_hires_spr", args.schip_hires_spr)
+    cpu.schip_vblank = gcpu("schip_vblank", args.schip_vblank)
 
     # main loop
     while not rl.window_should_close():
