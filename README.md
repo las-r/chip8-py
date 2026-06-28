@@ -3,6 +3,8 @@ A modular, extensible CHIP-8 emulator ecosystem written in modern Python, with s
 
 > **Note:** This is a remake of an old project of mine, [chip-8-python](https://github.com/las-r/chip-8-python), which aimed to do the same thing but was honestly pretty poorly made. It was monolithic and clunky, and this one is built to be an actual Python package.
 
+> **Other Note:** This project is a major WIP. There are many bugs, partially implemented features, and examples of poor code formatting. If you have a bug report or a feature request, please [make an issue for it](https://github.com/las-r/chip8-py/issues/new). If you want to contribute, check out the [guidelines](https://github.com/las-r/chip8-py/blob/main/CONTRIBUTING.md).
+
 ## Installation
 Requires Python 3.11+.
 
@@ -11,13 +13,13 @@ pip install chip8-py
 
 # or in a local directory
 git clone https://github.com/las-r/pychip8
-cd pychip8
+cd chip8-py
 pip install -e .
 ```
 
 ## Usage
 ```sh
-pychip8 path/to/rom.ch8
+chip8py path/to/rom.ch8
 ```
 
 ## Config
